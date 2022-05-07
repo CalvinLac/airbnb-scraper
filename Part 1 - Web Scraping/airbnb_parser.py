@@ -8,6 +8,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+# driver = webdriver.Chrome(executable_path='C:\Program Files\chromedriver/chromedriver.exe')
+
 import json
 import time
 
@@ -17,20 +19,20 @@ import pandas as pd
 
 from multiprocessing import Pool
 
-MAYRHOFEN_LINK = 'https://www.airbnb.com/s/Mayrhofen--Austria/homes?query=Mayrhofen%2C%20Austria&checkin=2021-04-06&checkout=2021-04-13&adults=4'
+CANMORE_LINK = 'https://www.airbnb.ca/s/Canmore--Alberta--Canada/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&flexible_trip_dates%5B%5D=june&flexible_trip_dates%5B%5D=may&flexible_trip_lengths%5B%5D=weekend_trip&date_picker_type=calendar&query=Canmore%2C%20Alberta%2C%20Canada&place_id=ChIJMWNFlZXFcFMRLmkenl8xtkY&checkin=2022-05-20&checkout=2022-05-27&adults=2&source=structured_search_input_header&search_type=autocomplete_click'
 
 RULES_SEARCH_PAGE = {
     'url': {'tag': 'a', 'get': 'href'},
-    'name': {'tag': 'div', 'class': '_hxt6u1e', 'get': 'aria-label'},
-    'name_alt': {'tag': 'a', 'get': 'aria-label'},
-    'header': {'tag': 'div', 'class': '_b14dlit'},
-    'rooms': {'tag': 'div', 'class': '_kqh46o'},
-    'facilities': {'tag': 'div', 'class': '_kqh46o', 'order': 1},
-    'badge': {'tag': 'div', 'class': '_17bkx6k'},
-    'rating_n_reviews': {'tag': 'span', 'class': '_18khxk1'},
-    'price': {'tag': 'span', 'class': '_1p7iugi'},
-    'price_alt': {'tag': 'span', 'class': '_olc9rf0'},
-    'superhost': {'tag': 'div', 'class': '_ufoy4t'},
+    'name': {'tag': 'div', 'class': 'c1bx80b8'},
+    # 'name_alt': {'tag': 'a', 'get': 'aria-label'},
+    # 'header': {'tag': 'div', 'class': '_b14dlit'},
+    # 'rooms': {'tag': 'div', 'class': '_kqh46o'},
+    # 'facilities': {'tag': 'div', 'class': '_kqh46o', 'order': 1},
+    # 'badge': {'tag': 'div', 'class': '_17bkx6k'},
+    # 'rating_n_reviews': {'tag': 'span', 'class': '_18khxk1'},
+    'price': {'tag': 'span', 'class': '_tyxjp1'}
+    # 'price_alt': {'tag': 'span', 'class': '_olc9rf0'},
+    # 'superhost': {'tag': 'div', 'class': '_ufoy4t'},
 }
 
 RULES_DETAIL_PAGE = {
@@ -56,7 +58,7 @@ RULES_DETAIL_PAGE = {
 }
 
 
-def extract_listings(page_url, attempts=10):
+def extract_listings(page_url, attempts=2):
     """Extracts all listings from a given page"""
     
     listings_max = 0
@@ -79,12 +81,12 @@ def extract_listings(page_url, attempts=10):
             listings_max = len(listings)
             listings_out = listings
 
+    print("done extract listings")
     return listings_out
         
         
 def extract_element_data(soup, params):
     """Extracts data from a specified HTML element"""
-    
     # 1. Find the right tag
     if 'class' in params:
         elements_found = soup.find_all(params['tag'], params['class'])
@@ -104,6 +106,7 @@ def extract_element_data(soup, params):
     else:
         output = element_texts[tag_order]
     
+    # print (output)
     return output
 
 
@@ -119,13 +122,13 @@ def extract_listing_features(soup, rules):
     return features_dict
 
 
-def extract_soup_js(listing_url, waiting_time=[20, 1]):
+def extract_soup_js(listing_url, waiting_time=[6, 1]):
     """Extracts HTML from JS pages: open, wait, click, wait, extract"""
 
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--blink-settings=imagesEnabled=false')
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(executable_path='C:\Program Files\chromedriver/chromedriver.exe')
 
     # if the URL is not valid - return an empty soup
     try:
@@ -142,7 +145,7 @@ def extract_soup_js(listing_url, waiting_time=[20, 1]):
 
     # click cookie policy
     try:
-        driver.find_element_by_xpath("/html/body/div[6]/div/div/div[1]/section/footer/div[2]/button").click()
+        driver.find_element_by_class_name("_1d91p2oa").click()
     except:
         pass
     # alternative click cookie policy
@@ -155,29 +158,29 @@ def extract_soup_js(listing_url, waiting_time=[20, 1]):
     # looking for price details
     price_dropdown = 0
     try:
-        element = driver.find_element_by_class_name('_gby1jkw')
+        element = driver.find_element_by_class_name('_tyxjp1')
         price_dropdown = 1
     except:
         pass
 
     # if the element is present - click on it
-    if price_dropdown == 1:
-        for i in range(10): # 10 attempts to scroll to the price button
-            try:
-                actions = ActionChains(driver)
-                driver.execute_script("arguments[0].scrollIntoView(true);", element);
-                actions.move_to_element_with_offset(element, 5, 5)
-                actions.click().perform()
-                break
-            except:
-                pass
+    # if price_dropdown == 1:
+    #     for i in range(10): # 10 attempts to scroll to the price button
+    #         try:
+    #             actions = ActionChains(driver)
+    #             driver.execute_script("arguments[0].scrollIntoView(true);", element);
+    #             actions.move_to_element_with_offset(element, 5, 5)
+    #             actions.click().perform()
+    #             break
+    #         except:
+    #             pass
         
     # looking for amenities
-    driver.execute_script("window.scrollTo(0, 0);")
-    try:
-        driver.find_element_by_class_name('_13e0raay').click()
-    except:
-        pass # amenities button not found
+    # driver.execute_script("window.scrollTo(0, 0);")
+    # try:
+    #     driver.find_element_by_class_name('_13e0raay').click()
+    # except:
+    #     pass # amenities button not found
 
     time.sleep(waiting_time[1])
 
@@ -190,8 +193,8 @@ def extract_soup_js(listing_url, waiting_time=[20, 1]):
 
 def scrape_detail_page(base_features):
     """Scrapes the detail page and merges the result with basic features"""
-    
-    detailed_url = 'https://www.airbnb.com' + base_features['url']
+    detailed_url = 'https://www.airbnb.ca' + base_features['url']
+    print(detailed_url)
     soup_detail = extract_soup_js(detailed_url)
 
     features_detailed = extract_listing_features(soup_detail, RULES_DETAIL_PAGE)
@@ -223,7 +226,7 @@ class Parser:
         self.out_file = out_file
 
     
-    def build_urls(self, listings_per_page=20, pages_per_location=15):
+    def build_urls(self, listings_per_page=10, pages_per_location=1):
         """Builds links for all search pages for a given location"""
         url_list = []
         for i in range(pages_per_location):
@@ -231,9 +234,13 @@ class Parser:
             url_pagination = self.link + f'&items_offset={offset}'
             url_list.append(url_pagination)
             self.url_list = url_list
+            # print (url_pagination)
+       
+        # print (url_list)
 
 
     def process_search_pages(self):
+        print ("into process")
         """Extract features from all search pages"""
         features_list = []
         for page in self.url_list:
@@ -243,6 +250,7 @@ class Parser:
                 features['sp_url'] = page
                 features_list.append(features)
 
+        # print (features_list)
         self.base_features_list = features_list
         
 
@@ -257,24 +265,27 @@ class Parser:
         self.all_features_list = result
 
 
-    def save(self, feature_set='all'):
+    def save(self, feature_set='basic'):
         if feature_set == 'basic':
-            pd.DataFrame(self.base_features_list).to_csv(self.out_file, index=False)
-        elif feature_set == 'all':
-            pd.DataFrame(self.all_features_list).to_csv(self.out_file, index=False)
+            print ("hi")
+            pd.DataFrame(self.base_features_list).to_csv('C:\\temp\\test.csv')
+        # elif feature_set == 'all':
+        #     pd.DataFrame(self.all_features_list).to_csv(self.out_file, index=False)
         else:
             pass
+
+        pd.DataFrame(self.all_features_list).to_csv('C:\\temp\\testall.csv')
             
         
     def parse(self):
         self.build_urls()
         self.process_search_pages()
         self.process_detail_pages()
-        self.save('all')
+        self.save('basic')
 
 
 if __name__ == "__main__":
-    new_parser = Parser(MAYRHOFEN_LINK, './test.csv')
+    new_parser = Parser(CANMORE_LINK, './test.csv')
     t0 = time.time()
     new_parser.parse()
     print(time.time() - t0)
