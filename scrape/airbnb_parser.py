@@ -128,7 +128,7 @@ def extract_soup_js(listing_url, waiting_time=[6, 1]):
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--blink-settings=imagesEnabled=false')
-    driver = webdriver.Chrome(executable_path='C:\Program Files\chromedriver/chromedriver.exe')
+    driver = webdriver.Chrome(options=options)
 
     # if the URL is not valid - return an empty soup
     try:
