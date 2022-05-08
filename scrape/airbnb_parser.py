@@ -267,13 +267,13 @@ class Parser:
 
     def save(self, feature_set='basic'):
         if feature_set == 'basic':
-            pd.DataFrame(self.base_features_list).to_csv('C:\\temp\\test.csv')
+            pd.DataFrame(self.base_features_list).to_csv('./test.csv')
         # elif feature_set == 'all':
         #     pd.DataFrame(self.all_features_list).to_csv(self.out_file, index=False)
         else:
             pass
 
-        pd.DataFrame(self.all_features_list).to_csv('C:\\temp\\testall.csv')
+        # pd.DataFrame(self.all_features_list).to_csv('C:\\temp\\testall.csv')
             
         
     def parse(self):
