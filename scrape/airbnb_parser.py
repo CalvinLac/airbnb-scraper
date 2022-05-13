@@ -68,7 +68,7 @@ def extract_listings(page_url, attempts=2):
             answer = requests.get(page_url, timeout=5)
             content = answer.content
             soup = BeautifulSoup(content, features='html.parser')
-            listings = soup.findAll("div", {"class": "_gig1e7"})
+            listings = soup.findAll("div", {"class": "giajdwt"})
         except:
             # if no response - return a list with an empty soup
             listings = [BeautifulSoup('', features='html.parser')]
@@ -226,7 +226,7 @@ class Parser:
         self.out_file = out_file
 
     
-    def build_urls(self, listings_per_page=10, pages_per_location=1):
+    def build_urls(self, listings_per_page=20, pages_per_location=2):
         """Builds links for all search pages for a given location"""
         url_list = []
         for i in range(pages_per_location):
@@ -250,7 +250,7 @@ class Parser:
                 features['sp_url'] = page
                 features_list.append(features)
 
-        # print (features_list)
+        print (features_list)
         self.base_features_list = features_list
         
 
@@ -267,7 +267,7 @@ class Parser:
 
     def save(self, feature_set='basic'):
         if feature_set == 'basic':
-            pd.DataFrame(self.base_features_list).to_csv('./test.csv')
+            pd.DataFrame(self.base_features_list).to_csv(self.out_file)
         # elif feature_set == 'all':
         #     pd.DataFrame(self.all_features_list).to_csv(self.out_file, index=False)
         else:
